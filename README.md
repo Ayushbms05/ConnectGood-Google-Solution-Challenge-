@@ -22,7 +22,7 @@ The platform is split into two distinct user journeys, ensuring tailored experie
 
 ## 🛠️ Technology Stack & Integrations
 
-This project was built focusing on enterprise-grade architecture, utilizing Vanilla JavaScript (ES6+), HTML5, and CSS3, paired with powerful third-party APIs.
+This project was built focusing on enterprise-grade architecture, utilizing Vanilla JavaScript (ES6+), HTML5, and CSS3 for the frontend, and a Node.js Express backend, paired with powerful third-party APIs.
 
 ### 1. Firebase (Firestore Backend)
 - **Integration Details:** The application uses the Firebase v9 Compat SDK to connect to a secure cloud database.
@@ -42,7 +42,8 @@ This project was built focusing on enterprise-grade architecture, utilizing Vani
 ### 3. Google Gemini AI (Smart Matchmaker)
 - **Integration Details:** Direct REST API integration with the `gemini-flash-latest` model.
 - **Implementation:** 
-  - Triggered via the `runAIMatchmaker()` function in the Admin Matching View.
+  - Triggered via the `runAIMatchmaker()` function, which securely requests the local Node.js Express backend (`/api/matchmaker`).
+  - The backend securely injects the API key from a server environment variable before communicating with Google's APIs, preventing any key exposure in the browser.
   - Automatically serializes open Community Needs and available Volunteer Profiles into a structured prompt.
   - Instructs the AI to evaluate skill overlap, availability, and location proximity.
   - Parses the structured `application/json` output from Gemini and dynamically renders visually engaging result cards, including Match Confidence Scores and overlapping skill tags.
@@ -60,11 +61,22 @@ This project was built focusing on enterprise-grade architecture, utilizing Vani
 
 ## 🚀 Setup & Execution
 
-1. **Serve Locally:** Because the app utilizes Firebase and fetch APIs, it must be run over a local web server (e.g., `npx http-server`, Live Server extension, or Python's `http.server`) to avoid strict `file:///` CORS protocol restrictions.
-2. **API Key Configurations:**
-   - **Gemini AI:** Your key is injected at the top of `app.js` under the `GEMINI_API_KEY` constant.
-   - **Google Maps:** Configured directly in the `<script>` tag within `index.html`.
-   - **Firebase:** Project configuration variables are located in `firebase.js`.
+### Running Locally
+1. **Install Dependencies:** Run `npm install` in your terminal to install the Express backend.
+2. **Set Environment Variable:** Set your Gemini API key in your terminal session:
+   - *Windows (PowerShell):* `$env:GEMINI_API_KEY="YOUR_API_KEY"`
+   - *Mac/Linux:* `export GEMINI_API_KEY="YOUR_API_KEY"`
+3. **Start the Server:** Run `npm start`. Open your browser to `http://localhost:8080`.
+
+### Deploying to Google Cloud Run
+You can easily deploy this full-stack application securely using the Google Cloud CLI. The API key is passed directly to the cloud environment, keeping your source code safe:
+```bash
+gcloud run deploy connectgood --source . --project YOUR_PROJECT_ID --region us-central1 --allow-unauthenticated --set-env-vars="GEMINI_API_KEY=YOUR_ACTUAL_API_KEY"
+```
+
+### Other Configurations
+- **Google Maps:** Configured directly in the `<script>` tag within `index.html`.
+- **Firebase:** Project configuration variables are located in `firebase.js`.
 
 ---
 
