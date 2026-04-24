@@ -21,7 +21,7 @@ app.post('/api/matchmaker', async (req, res) => {
         return res.status(400).json({ error: "Missing prompt" });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : null;
     if (!apiKey) {
         console.error("GEMINI_API_KEY environment variable is missing.");
         return res.status(500).json({ error: "Server configuration error: Missing API Key" });
@@ -39,6 +39,8 @@ app.post('/api/matchmaker', async (req, res) => {
         });
 
         if (!response.ok) {
+            const errText = await response.text();
+            console.error(`Gemini API Error (${response.status}):`, errText);
             throw new Error(`Gemini API Error: ${response.status} ${response.statusText}`);
         }
 
