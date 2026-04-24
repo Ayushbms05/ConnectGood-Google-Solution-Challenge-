@@ -9,8 +9,8 @@ const app = (() => {
   // ================================================================
   // CONFIGURATION
   // ================================================================
-  const GEMINI_API_KEY = "YOUR_API_KEY_HERE";
-
+  // API key is securely managed on the backend and should NOT be placed here.
+  
   // ================================================================
   // DATA MANAGEMENT LAYER
   // ================================================================
@@ -825,17 +825,7 @@ const app = (() => {
             <p class="ai-loading-text">🤖 Gemini is scanning <strong>${volunteerProfiles.length}</strong> volunteer profiles against <strong>${postedNeeds.length}</strong> community needs…</p>
         </div>`;
 
-    if (GEMINI_API_KEY === "YOUR_API_KEY_HERE" || !GEMINI_API_KEY) {
-      results.innerHTML = `<div style="color:var(--clr-danger); padding:16px; border:1px solid var(--clr-danger); border-radius:8px; margin-top:16px;">
-        ⚠️ <strong>API Key Missing:</strong> Please update GEMINI_API_KEY in app.js to use the AI Matchmaker.
-      </div>`;
-      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true"><path d="M7 13l-4-4 1.4-1.4L7 10.2l6.6-6.6L15 5l-8 8z"/></svg> Run AI Matchmaker`;
-      btn.disabled = false;
-      btn.classList.remove("loading");
-      aiMatchmakerRunning = false;
-      return;
-    }
-
+    // API Key check removed because it's now securely handled by the backend server
     try {
       const prompt = `
         You are an AI Matchmaker for an NGO volunteer platform.
@@ -858,20 +848,18 @@ const app = (() => {
         Return ONLY valid JSON. Return an empty array if no matches make sense. Ensure every need gets paired if possible.
       `;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch('/api/matchmaker', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        })
+        body: JSON.stringify({ prompt })
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error(`Gemini API Error: ${response.status}`);
+        throw new Error(data.error || `Backend Error: ${response.status}`);
       }
 
-      const data = await response.json();
       let pairingsData = [];
       try {
         const textResponse = data.candidates[0].content.parts[0].text;
